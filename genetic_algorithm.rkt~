@@ -32,7 +32,10 @@
   (define (gen e po prev-fs steps)  
     (let ((fs (fitnesses e po)))
       (if (stop e (apply max prev-fs) (apply max fs) steps)
-          (optimal-arg po fs (genetic-env-better e)) ; stop condition is true, return best individual
+          (begin
+            (display po)
+            (newline)
+            (optimal-arg po fs (genetic-env-better e))) ; stop condition is true, return best individual
           (gen e (new-population e po fs) fs (add1 steps))))); go on, generate a new population
     (gen e (init-po e) (build-list (genetic-env-po-size e) (lambda (x) (* 0 x))) 0)) ; the first fitness is all 0
 
