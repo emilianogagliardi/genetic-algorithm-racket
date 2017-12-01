@@ -11,4 +11,6 @@ in genetic_algorithm.rkt is defined a struct called genetic-env. The genetic env
 The function genetic takes in input a genetic environment and returns a solution.
 There is also an example with a very simple objective function (you'll never use a genetic algorithm for a problem like that)
 
-TODO knapsac problem
+TODO tsp
+TODO find a select algorithm that does not depends on the domain, and embed it in the algorithm
+TODO fast and slow averages on best fitness stop condition
