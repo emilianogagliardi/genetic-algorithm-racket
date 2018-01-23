@@ -1,11 +1,13 @@
 #lang racket
 
-(provide genetic genetic-env)
+(provide genetic
+         genetic-env
+         fit-proportional-selection)
 
 (struct genetic-env (
                      ff ; (chro) -> real
                      stop ; (best-prev-fitness, best-cur-fitness, iter) -> bool
-                     better ; (real, real) -> real the preferred argument
+                     better ; it must be < or >
                      init-population ; () -> list of chromosomes of length po-size
                      crossover ; (chro, chro) -> (chro, chro)
                      mutate ; (chro) -> chro
@@ -25,16 +27,16 @@
 (define (init-po e)
   ((genetic-env-init-population e)))
 
-; genetic algorithm core, takes in input a population
-; and a genetic-env and iterates stop-condition and
-; generation of a new population
+; genetic algorithm core, takes in input a population and a genetic-env and iterates stop-condition
+; and generation of a new population
 (define (genetic e)
   (define (gen e po prev-fs steps)  
     (let ((fs (fitnesses e po)))
       (if (stop e (apply max prev-fs) (apply max fs) steps)
           (optimal-arg po fs (genetic-env-better e)) ; stop condition is true, return best individual
           (gen e (new-population e po fs) fs (add1 steps))))); go on, generate a new population
-    (gen e (init-po e) (build-list (genetic-env-po-size e) (lambda (x) (* 0 x))) 0)) ; the first fitness is all 0
+  ; the first fitness is all 0
+  (gen e (init-po e) (build-list (genetic-env-po-size e) (lambda (x) (* 0 x))) 0)) 
 
 ; takes in input the elements list and the values list,
 ; and a comparison function between values
@@ -74,5 +76,19 @@
         (cons ((genetic-env-mutate env) (car old)) (cdr old))))
   (mut env population '()))
 
+; SELECTION METHODS
 
-      
+; select the parents proportionally to their fitness. Fitness function is assumed to be positive
+(define (fit-proportional-selection po fs)
+  (let* ((sum (foldl + 0 fs)) ; note that this assume the ff to be always positive
+         (ps (map (lambda (x) (/ x sum)) fs)))
+    ; given a random n in [0, 1] iterate over the elements of the list
+    ; until the cumulated probability is greater or equal to n
+    (define (get-rnd po ps acc n)
+      (if (> acc n) ; acc need to start from the probability value of the first element, not 0
+          (car po)
+          (get-rnd (cdr po) (cdr ps) (+ acc (car ps)) n)))
+    ; return a pair
+    (cons (get-rnd po (cdr ps) (car ps) (random))
+          (cons (get-rnd po (cdr ps) (car ps) (random)) '()))))
+

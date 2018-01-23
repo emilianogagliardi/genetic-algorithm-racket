@@ -2,7 +2,6 @@
 
 (require "genetic_algorithm.rkt")
 
-
 ; a chromosome is a list of numbers in [0, 10], the fitness function is - sum
 (define (create-env) 
 (let ((po-size 30) ; crossover assume this to be even
@@ -40,26 +39,14 @@
         (mu chro (random chro-length) 0)
         chro))
 
-  (define (select-elem po fs)
-    (let* ((sum (foldl + 0 fs)) ; note that this assume the ff to be always positive
-           (ps (map (lambda (x) (/ x sum)) fs)))
-      ; given a random n in [0, 1] iterate over the elements of the list
-      ; until the cumulated probability is greater or equal to n
-      (define (get-rnd po ps acc n)
-        (if (> acc n) ; acc need to start from the probability value of the first element, not 0
-            (car po)
-            (get-rnd (cdr po) (cdr ps) (+ acc (car ps)) n)))
-      ; return a pair
-      (cons (get-rnd po (cdr ps) (car ps) (random)) (cons (get-rnd po (cdr ps) (car ps) (random)) '()))))
-
   (genetic-env
-   (lambda (chro) ( - 100 (foldl + 0 chro))) ; fitness function
-   (lambda (pf cf s) (= 50000 s)) ; stop condition
-   (lambda (x y) (> x y)) ; better
+   (lambda (chro) (- 100 (foldl + 0 chro))) ; fitness function
+   (lambda (pf cf s) (= 200000 s)) ; stop condition
+   > ; bigger fitness is better
    ini-po
    crossover
    mutation
-   select-elem
+   fit-proportional-selection
    po-size)
   )
 )
